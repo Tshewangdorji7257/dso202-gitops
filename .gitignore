@@ -1,0 +1,35 @@
+# ---------------------------------------------------------------------------
+# File:        .gitignore
+# Assignment:  DSO202 Assignment 4 - GitOps Delivery of the Task Tracker
+# Descriptor:  4.4.1 (secrets in a GitOps repository)
+# Purpose:     Keep key material and plaintext Secrets out of Git by accident.
+#              This is a safety net only. The proof that no credential was
+#              committed is the history search recorded in docs/evidence.md.
+# ---------------------------------------------------------------------------
+
+# Sealed Secrets private keys and their backups (the backup lives OUTSIDE the repo)
+*.key
+*.pem
+*.crt
+sealed-secrets-key*.yaml
+*-key-backup*.yaml
+
+# Plaintext Secret manifests and env files that could hold credentials
+*.secret.yaml
+*-secret.yaml
+*.unsealed.yaml
+*.env
+.env*
+
+# Rendered output and local tool state
+rendered/
+*.tgz
+charts/*/charts/
+.kube/
+kubeconfig*
+
+# Editor and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
