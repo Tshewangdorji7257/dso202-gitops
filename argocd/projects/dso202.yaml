@@ -1,0 +1,53 @@
+# ---------------------------------------------------------------------------
+# File:        argocd/projects/dso202.yaml
+# Assignment:  DSO202 Assignment 4 - GitOps Delivery of the Task Tracker
+# Descriptor:  4.2.2 (AppProject least privilege), 3.2 (multi-tenancy)
+# Purpose:     The workload project for tasktracker-dev and tasktracker-staging.
+#              It may read only this repository, deploy only to the two
+#              Task Tracker namespaces, and create only the namespaced kinds
+#              that the chart renders. It may create NO cluster-scoped kind,
+#              and no Namespace, ResourceQuota, LimitRange, Role or Secret, so
+#              a commit to the chart cannot widen its own permissions.
+#              Created by the root Application in wave -3 (first).
+# Whitelist:   Verified against
+#                helm template tasktracker charts/tasktracker \
+#                  -f environments/dev/values.yaml | grep '^kind:' | sort -u
+#              which lists: ConfigMap, Deployment, Job, Service, StatefulSet.
+#              PersistentVolumeClaims are created by the StatefulSet
+#              controller, not by Argo CD, so they are not listed.
+# ---------------------------------------------------------------------------
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: dso202
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-3"
+spec:
+  description: Task Tracker workloads - least privilege
+
+  sourceRepos:
+    - https://github.com/Tshewangdorji7257/dso202-gitops.git
+
+  # Never argocd (section 7.2): writing there is administrator capability.
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: dso202-dev
+    - server: https://kubernetes.default.svc
+      namespace: dso202-staging
+
+  # Empty list = no cluster-scoped kind is permitted.
+  clusterResourceWhitelist: []
+
+  # Exactly the kinds that "helm template" renders for the chart.
+  namespaceResourceWhitelist:
+    - group: ""
+      kind: ConfigMap
+    - group: ""
+      kind: Service
+    - group: apps
+      kind: Deployment
+    - group: apps
+      kind: StatefulSet
+    - group: batch
+      kind: Job              # the PostSync smoke test hook

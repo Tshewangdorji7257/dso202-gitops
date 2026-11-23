@@ -1,0 +1,34 @@
+# ---------------------------------------------------------------------------
+# File:        bootstrap/root/root-app.yaml
+# Assignment:  DSO202 Assignment 4 - GitOps Delivery of the Task Tracker
+# Descriptor:  4.2.2 (Applications, app of apps), 4.3.1 (automated sync)
+# Purpose:     The root of the "app of apps". It watches the argocd/ directory
+#              on branch main and creates every AppProject and Application
+#              found there. Adding a file creates an Application; removing
+#              the file deletes it (prune). This is the last object applied
+#              by hand; everything after it comes from Git.
+# ---------------------------------------------------------------------------
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: root
+  namespace: argocd
+  # Deleting root deletes every child Application and, through their own
+  # finalizers, every workload. Re-apply this file to rebuild (section 13).
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: platform
+  source:
+    repoURL: https://github.com/Tshewangdorji7257/dso202-gitops.git
+    targetRevision: main
+    path: argocd
+    directory:
+      recurse: true          # read argocd/projects and argocd/applications
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true            # a removed file removes its Application
+      selfHeal: true         # a hand-edited Application is reverted

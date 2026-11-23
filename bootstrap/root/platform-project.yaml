@@ -1,0 +1,42 @@
+# ---------------------------------------------------------------------------
+# File:        bootstrap/root/platform-project.yaml
+# Assignment:  DSO202 Assignment 4 - GitOps Delivery of the Task Tracker
+# Descriptor:  4.2.2 (AppProject boundaries), 3.2 (namespaces and RBAC)
+# Purpose:     The administrator-level project. Only the platform layer
+#              (root, sealed-secrets, platform-dev, platform-staging) belongs
+#              here. It is the ONLY project allowed to target the argocd
+#              namespace, and the only one allowed cluster-scoped kinds
+#              (Namespaces, CRDs, ClusterRoles of the Sealed Secrets chart).
+#              Applied by hand during bootstrap, because the root Application
+#              needs it before it can sync anything.
+# ---------------------------------------------------------------------------
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: platform
+  namespace: argocd
+spec:
+  description: Platform layer - Argo CD objects, Sealed Secrets, namespaces, quotas, credentials
+
+  # Same spelling of the repository URL in every file (section 7.1).
+  sourceRepos:
+    - https://github.com/Tshewangdorji7257/dso202-gitops.git
+    - https://bitnami.github.io/sealed-secrets
+
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: argocd
+    - server: https://kubernetes.default.svc
+      namespace: sealed-secrets
+    - server: https://kubernetes.default.svc
+      namespace: dso202-dev
+    - server: https://kubernetes.default.svc
+      namespace: dso202-staging
+
+  # Administrator level: every kind, cluster-scoped and namespaced.
+  clusterResourceWhitelist:
+    - group: "*"
+      kind: "*"
+  namespaceResourceWhitelist:
+    - group: "*"
+      kind: "*"
