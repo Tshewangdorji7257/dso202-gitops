@@ -1,15 +1,24 @@
+# ---------------------------------------------------------------------------
+# File:        charts/tasktracker/templates/db-service.yaml
+# Assignment:  DSO202 Assignment 4 - GitOps Delivery of the Task Tracker
+# Descriptor:  2.1 (StatefulSets and headless Services), 4.3.2 (sync waves)
+# Purpose:     Headless Service that gives the database Pod its stable DNS
+#              name (db-0.db-svc). Wave 1, together with the StatefulSet.
+# ---------------------------------------------------------------------------
 apiVersion: v1
 kind: Service
 metadata:
   name: db-svc
-  namespace: {{ .Release.Namespace }}
   labels:
     tier: database
-    {{- include "dso202.labels" . | nindent 4 }}
+    {{- include "tasktracker.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   clusterIP: None
   selector:
     tier: database
   ports:
-    - port: 5432
+    - name: postgres
+      port: 5432
       targetPort: 5432

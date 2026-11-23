@@ -1,23 +1,79 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
+  "$comment": "File: charts/tasktracker/values.schema.json | DSO202 Assignment 4 | Descriptor 3.1.4 | Purpose: reject invalid values before Argo CD renders the chart. Image tags must be exact (no latest/stable), the environment must be dev or staging, and NodePorts must be in range.",
   "type": "object",
-  "required": ["environment", "config", "secret", "database", "backend", "frontend", "ingress"],
-  "properties": {
-    "environment": {"type": "string", "enum": ["dev", "staging", "prod"]},
-    "secret": {
+  "required": ["environment", "credentials", "config", "database", "backend", "frontend", "smokeTest"],
+  "definitions": {
+    "image": {
       "type": "object",
-      "required": ["dbUser"],
-      "properties": {"dbUser": {"type": "string", "minLength": 1}, "dbPassword": {"type": "string"}}
-    },
-    "database": {
-      "type": "object",
+      "required": ["repository", "tag"],
       "properties": {
-        "replicas": {"type": "integer", "minimum": 1, "maximum": 1},
-        "retainPvc": {"type": "boolean"}
+        "repository": {"type": "string", "minLength": 1},
+        "tag": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+(\\.[0-9]+)?$"},
+        "pullPolicy": {"type": "string", "enum": ["IfNotPresent", "Never"]}
       }
     },
-    "backend": {"type": "object", "properties": {"replicas": {"type": "integer", "minimum": 1}, "port": {"type": "integer"}}},
-    "frontend": {"type": "object", "properties": {"replicas": {"type": "integer", "minimum": 1}, "port": {"type": "integer"}}},
-    "ingress": {"type": "object", "properties": {"enabled": {"type": "boolean"}, "host": {"type": "string"}}}
+    "resources": {
+      "type": "object",
+      "required": ["requests", "limits"]
+    }
+  },
+  "properties": {
+    "environment": {"type": "string", "enum": ["dev", "staging"]},
+    "credentials": {
+      "type": "object",
+      "required": ["secretName"],
+      "properties": {"secretName": {"type": "string", "minLength": 1}}
+    },
+    "config": {"type": "object", "additionalProperties": {"type": "string"}},
+    "database": {
+      "type": "object",
+      "required": ["image", "resources"],
+      "properties": {
+        "image": {"$ref": "#/definitions/image"},
+        "replicas": {"type": "integer", "minimum": 1, "maximum": 1},
+        "retainPvc": {"type": "boolean"},
+        "resources": {"$ref": "#/definitions/resources"}
+      }
+    },
+    "backend": {
+      "type": "object",
+      "required": ["image", "resources"],
+      "properties": {
+        "image": {"$ref": "#/definitions/image"},
+        "replicas": {"type": "integer", "minimum": 1},
+        "port": {"type": "integer"},
+        "progressDeadlineSeconds": {"type": "integer", "minimum": 30},
+        "resources": {"$ref": "#/definitions/resources"}
+      }
+    },
+    "frontend": {
+      "type": "object",
+      "required": ["image", "resources", "service"],
+      "properties": {
+        "image": {"$ref": "#/definitions/image"},
+        "replicas": {"type": "integer", "minimum": 1},
+        "port": {"type": "integer"},
+        "progressDeadlineSeconds": {"type": "integer", "minimum": 30},
+        "service": {
+          "type": "object",
+          "properties": {
+            "type": {"type": "string", "enum": ["NodePort", "ClusterIP"]},
+            "nodePort": {"type": "integer", "minimum": 30000, "maximum": 32767}
+          }
+        },
+        "resources": {"$ref": "#/definitions/resources"}
+      }
+    },
+    "smokeTest": {
+      "type": "object",
+      "required": ["image", "resources"],
+      "properties": {
+        "image": {"type": "string", "pattern": "^[^:]+:[0-9][0-9.]*$"},
+        "attempts": {"type": "integer", "minimum": 1},
+        "intervalSeconds": {"type": "integer", "minimum": 1},
+        "resources": {"$ref": "#/definitions/resources"}
+      }
+    }
   }
 }

@@ -1,7 +1,16 @@
+# ---------------------------------------------------------------------------
+# File:        charts/tasktracker/Chart.yaml
+# Assignment:  DSO202 Assignment 4 - GitOps Delivery of the Task Tracker
+# Descriptor:  3.1.4 (Helm charts), reused in 4.4.2
+# Purpose:     The Assignment 3 chart (dso202-app), renamed "tasktracker" and
+#              adjusted for GitOps in Task 1. It now holds ONLY the workload
+#              (database, backend, frontend, config, smoke test). Namespace,
+#              quota, limits, RBAC and credentials moved to platform/<env>/.
+# ---------------------------------------------------------------------------
 apiVersion: v2
-name: dso202-app
-description: DSO202 Assignment 2 - frontend, backend, PostgreSQL StatefulSet and NGINX Ingress
+name: tasktracker
+description: DSO202 Task Tracker - PostgreSQL StatefulSet, backend and frontend, delivered by Argo CD
 type: application
-version: 0.1.0        # version of the chart (package)
-appVersion: "1.0"     # version of the software inside it
+version: 1.0.0          # chart (package) version, pinned
+appVersion: "1.0"       # default application release; image tags are in values.yaml
 kubeVersion: ">=1.27.0-0"

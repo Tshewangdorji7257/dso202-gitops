@@ -1,0 +1,55 @@
+# ---------------------------------------------------------------------------
+# File:        charts/tasktracker/templates/smoke-test-job.yaml
+# Assignment:  DSO202 Assignment 4 - GitOps Delivery of the Task Tracker
+# Descriptor:  4.3.2 (resource hooks), 4.4.2 (verifying a release)
+# Purpose:     PostSync hook. After every wave is Healthy, Argo CD runs this
+#              Job. It calls the backend Service until /api/status reports
+#              "db":"connected". If it never does, the Job fails and so does
+#              the sync, which makes a bad release visible at once.
+#              Service name corrected to "backend-svc" (the chart's name).
+#              Resources are set because the namespace quota requires them.
+#              BeforeHookCreation keeps the last Job, so its log stays
+#              readable:  kubectl logs job/tasktracker-smoke-test -n <ns>
+# ---------------------------------------------------------------------------
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: tasktracker-smoke-test
+  labels:
+    tier: smoke-test
+    {{- include "tasktracker.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  backoffLimit: 0                  # the script retries itself; one Pod is enough
+  activeDeadlineSeconds: 300
+  template:
+    metadata:
+      labels:
+        tier: smoke-test
+        {{- include "tasktracker.labels" . | nindent 8 }}
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: smoke-test
+          image: {{ .Values.smokeTest.image }}
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "-c"]
+          args:
+            - |
+              url="http://backend-svc:{{ .Values.backend.port }}/api/status"
+              i=1
+              while [ "$i" -le {{ .Values.smokeTest.attempts }} ]; do
+                body=$(wget -q -T 5 -O - "$url" 2>&1) || body="no answer: $body"
+                echo "attempt $i: $body"
+                case "$body" in
+                  *'"db":"connected"'*) echo "SMOKE TEST PASSED"; exit 0 ;;
+                esac
+                i=$((i + 1))
+                sleep {{ .Values.smokeTest.intervalSeconds }}
+              done
+              echo "SMOKE TEST FAILED after {{ .Values.smokeTest.attempts }} attempts"
+              exit 1
+          resources:
+            {{- toYaml .Values.smokeTest.resources | nindent 12 }}

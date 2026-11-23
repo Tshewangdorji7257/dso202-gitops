@@ -1,10 +1,18 @@
+# ---------------------------------------------------------------------------
+# File:        charts/tasktracker/templates/configmap.yaml
+# Assignment:  DSO202 Assignment 4 - GitOps Delivery of the Task Tracker
+# Descriptor:  1.5.1 (ConfigMaps), 4.3.2 (sync waves)
+# Purpose:     Non-secret settings for all tiers. Wave 0: created before the
+#              database (wave 1) and the Deployments that read it.
+# ---------------------------------------------------------------------------
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: app-config
-  namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "dso202.labels" . | nindent 4 }}
+    {{- include "tasktracker.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
 data:
   {{- range $key, $value := .Values.config }}
   {{ $key }}: {{ $value | quote }}

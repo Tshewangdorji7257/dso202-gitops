@@ -1,6 +1,23 @@
-# Defaults = the shared truth. Environment files in ../environments override them.
-environment: dev
+# ---------------------------------------------------------------------------
+# File:        charts/tasktracker/values.yaml
+# Assignment:  DSO202 Assignment 4 - GitOps Delivery of the Task Tracker
+# Descriptor:  3.1.4 (Helm values), 4.4.2 (promotion)
+# Purpose:     Defaults shared by every environment. Anything that differs
+#              per environment lives in environments/<env>/values.yaml.
+# Releases:    The image tags below are the release. Changing a tag here and
+#              merging to main deploys it to dev at once; staging receives it
+#              only when it is tagged and promoted (Task 7).
+# ---------------------------------------------------------------------------
 
+# Set by each environment file. Used only for labels, never in an "if".
+environment: ""
+
+# Name of the Secret created by the SealedSecret in platform/<env>/.
+# The chart never creates a Secret and never holds a password.
+credentials:
+  secretName: tasktracker-credentials
+
+# Non-secret configuration, rendered into the ConfigMap "app-config".
 config:
   DB_HOST: db-svc
   DB_PORT: "5432"
@@ -8,54 +25,50 @@ config:
   POSTGRES_DB: taskdb
   APP_PORT: "8080"
   CORS_ORIGIN: "*"
-  BACKEND_URL: http://localhost:8088
+  # The frontend reaches the backend through its Service (same value as
+  # Assignment 1, where the frontend was also a NodePort on 30080).
+  BACKEND_URL: http://backend-svc:8080
   LOG_LEVEL: info
 
-# No default password on purpose: supply it with -f or --set (see environments/).
-secret:
-  dbUser: taskuser
-  dbPassword: ""
-
+# Images issued by the module tutor (as used in Assignments 1-3).
+# Exact tags only; never "latest".
 database:
   image: {repository: rynorbu11/dso202-db, tag: "1.0", pullPolicy: IfNotPresent}
-  replicas: 1
+  replicas: 1                  # one PostgreSQL instance; not highly available
   storage: {size: 1Gi, storageClassName: ""}
-  retainPvc: true          # Retain PVC on StatefulSet delete/scale-down
+  retainPvc: true              # keep data when the StatefulSet is deleted
   resources:
     requests: {cpu: 100m, memory: 128Mi}
     limits: {cpu: 250m, memory: 256Mi}
 
 backend:
-  image: {repository: rynorbu11/dso202-backend, tag: "1.0", pullPolicy: IfNotPresent}  # image name is an assumption
+  image: {repository: rynorbu11/dso202-backend, tag: "1.0", pullPolicy: IfNotPresent}
   replicas: 1
   port: 8080
+  # A Deployment that makes no progress for this long is marked failed,
+  # so Argo CD reports it Degraded instead of Progressing forever (Task 7).
+  progressDeadlineSeconds: 120
   resources:
     requests: {cpu: 100m, memory: 128Mi}
     limits: {cpu: 250m, memory: 256Mi}
 
 frontend:
-  image: {repository: rynorbu11/dso202-frontend, tag: "1.0", pullPolicy: IfNotPresent}  # image name is an assumption
+  image: {repository: rynorbu11/dso202-frontend, tag: "1.0", pullPolicy: IfNotPresent}
   replicas: 1
   port: 8080
+  progressDeadlineSeconds: 120
+  service:
+    type: NodePort
+    nodePort: 30080            # overridden per environment
   resources:
     requests: {cpu: 100m, memory: 128Mi}
     limits: {cpu: 250m, memory: 256Mi}
 
-ingress:
-  enabled: true
-  className: nginx
-  host: ""                 # empty = match any host
-  annotations:
-    nginx.ingress.kubernetes.io/proxy-body-size: "1m"
-
-quota:
-  enabled: true
-  hard:
-    pods: "10"
-    requests.cpu: 1500m
-    requests.memory: 768Mi
-    limits.cpu: "3"
-    limits.memory: 1536Mi
-
-test:
-  image: curlimages/curl:8.10.1
+# PostSync hook that proves the deployment answers (Listing 13).
+smokeTest:
+  image: busybox:1.37
+  attempts: 30                 # 30 x 5 s = 2.5 min for the backend to connect
+  intervalSeconds: 5
+  resources:
+    requests: {cpu: 50m, memory: 64Mi}
+    limits: {cpu: 100m, memory: 64Mi}

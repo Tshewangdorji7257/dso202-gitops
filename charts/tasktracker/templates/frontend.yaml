@@ -1,13 +1,25 @@
+# ---------------------------------------------------------------------------
+# File:        charts/tasktracker/templates/frontend.yaml
+# Assignment:  DSO202 Assignment 4 - GitOps Delivery of the Task Tracker
+# Descriptor:  1.5.3 (Deployments), 1.2.5 (NodePort access), 4.3.2 (waves)
+# Purpose:     Frontend and its NodePort Service. Wave 3 (last), after the
+#              backend is Healthy. The NodePort comes from the environment
+#              values: 30080 in dev (mapped by kind to localhost:30080) and
+#              30081 in staging (reached with kubectl port-forward).
+#              The Assignment 3 Ingress is not used in this assignment.
+# ---------------------------------------------------------------------------
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: frontend-deployment
-  namespace: {{ .Release.Namespace }}
   labels:
     tier: frontend
-    {{- include "dso202.labels" . | nindent 4 }}
+    {{- include "tasktracker.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
 spec:
   replicas: {{ .Values.frontend.replicas }}
+  progressDeadlineSeconds: {{ .Values.frontend.progressDeadlineSeconds }}
   selector:
     matchLabels:
       tier: frontend
@@ -15,9 +27,9 @@ spec:
     metadata:
       labels:
         tier: frontend
-        {{- include "dso202.labels" . | nindent 8 }}
+        {{- include "tasktracker.labels" . | nindent 8 }}
       annotations:
-        {{- include "dso202.checksums" . | nindent 8 }}
+        {{- include "tasktracker.configChecksum" . | nindent 8 }}
     spec:
       containers:
         - name: frontend
@@ -40,14 +52,19 @@ apiVersion: v1
 kind: Service
 metadata:
   name: frontend-svc
-  namespace: {{ .Release.Namespace }}
   labels:
     tier: frontend
-    {{- include "dso202.labels" . | nindent 4 }}
+    {{- include "tasktracker.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
 spec:
-  type: ClusterIP
+  type: {{ .Values.frontend.service.type }}
   selector:
     tier: frontend
   ports:
-    - port: {{ .Values.frontend.port }}
+    - name: http
+      port: {{ .Values.frontend.port }}
       targetPort: {{ .Values.frontend.port }}
+      {{- if eq .Values.frontend.service.type "NodePort" }}
+      nodePort: {{ .Values.frontend.service.nodePort }}
+      {{- end }}
