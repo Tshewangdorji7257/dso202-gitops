@@ -1,0 +1,22 @@
+# ---------------------------------------------------------------------------
+# File:        environments/staging/values.yaml
+# Assignment:  DSO202 Assignment 4 - GitOps Delivery of the Task Tracker
+# Descriptor:  4.4.2 (environment-specific configuration)
+# Purpose:     Everything that differs in staging, and nothing else. Read by
+#              tasktracker-staging at the pinned tag, so an edit here reaches
+#              staging only after it is tagged and promoted.
+#              If Pods are Pending for lack of memory, set both replica
+#              counts to 1 (section 3.3).
+# ---------------------------------------------------------------------------
+environment: staging
+
+config:
+  LOG_LEVEL: info
+
+backend:
+  replicas: 2
+
+frontend:
+  replicas: 2
+  service:
+    nodePort: 30081          # not mapped by kind: use kubectl port-forward

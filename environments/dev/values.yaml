@@ -1,0 +1,19 @@
+# ---------------------------------------------------------------------------
+# File:        environments/dev/values.yaml
+# Assignment:  DSO202 Assignment 4 - GitOps Delivery of the Task Tracker
+# Descriptor:  4.4.2 (environment-specific configuration)
+# Purpose:     Everything that differs in dev, and nothing else. Read by
+#              tasktracker-dev from branch main.
+# ---------------------------------------------------------------------------
+environment: dev
+
+config:
+  LOG_LEVEL: debug
+
+backend:
+  replicas: 1
+
+frontend:
+  replicas: 1
+  service:
+    nodePort: 30080          # mapped by cluster/kind-cluster.yaml -> http://localhost:30080
