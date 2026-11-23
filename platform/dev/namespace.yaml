@@ -1,0 +1,16 @@
+# ---------------------------------------------------------------------------
+# File:        platform/dev/namespace.yaml
+# Assignment:  DSO202 Assignment 4 - GitOps Delivery of the Task Tracker
+# Descriptor:  3.2 (namespace-based multi-tenancy), 4.1.1 (declarative)
+# Purpose:     The dev namespace, created from Git by platform-dev. No
+#              namespace is ever created with "kubectl create" (principle 1).
+# ---------------------------------------------------------------------------
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dso202-dev
+  labels:
+    course: dso202
+    assignment: "4"
+    app.kubernetes.io/part-of: dso202
+    app.kubernetes.io/environment: dev

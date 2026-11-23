@@ -1,0 +1,16 @@
+# ---------------------------------------------------------------------------
+# File:        platform/staging/namespace.yaml
+# Assignment:  DSO202 Assignment 4 - GitOps Delivery of the Task Tracker
+# Descriptor:  3.2 (namespace-based multi-tenancy), 4.1.1 (declarative)
+# Purpose:     The staging namespace (student copy of Listing 11), created
+#              from Git by platform-staging.
+# ---------------------------------------------------------------------------
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dso202-staging
+  labels:
+    course: dso202
+    assignment: "4"
+    app.kubernetes.io/part-of: dso202
+    app.kubernetes.io/environment: staging

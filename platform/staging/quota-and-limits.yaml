@@ -1,0 +1,32 @@
+# ---------------------------------------------------------------------------
+# File:        platform/staging/quota-and-limits.yaml
+# Assignment:  DSO202 Assignment 4 - GitOps Delivery of the Task Tracker
+# Descriptor:  2.3 (ResourceQuota and LimitRange), reused in 4.2.2
+# Purpose:     Staging quota and limits. Larger than dev because staging runs
+#              2 backend and 2 frontend replicas (the Assignment 3 prod sizes).
+# ---------------------------------------------------------------------------
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: dso202-quota
+  namespace: dso202-staging
+spec:
+  hard:
+    pods: "15"
+    requests.cpu: "2"
+    requests.memory: 1536Mi
+    limits.cpu: "4"
+    limits.memory: 3Gi
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: dso202-limitrange
+  namespace: dso202-staging
+spec:
+  limits:
+    - type: Container
+      default: {cpu: 500m, memory: 256Mi}
+      defaultRequest: {cpu: 250m, memory: 128Mi}
+      max: {cpu: "1", memory: 512Mi}
+      min: {cpu: 50m, memory: 64Mi}
