@@ -1,0 +1,36 @@
+# ---------------------------------------------------------------------------
+# File:        argocd/applications/tasktracker-staging.yaml
+# Assignment:  DSO202 Assignment 4 - GitOps Delivery of the Task Tracker
+# Descriptor:  4.3.1 (manual sync), 4.4.2 (promotion between environments)
+# Purpose:     Staging workloads. Pinned to a Git TAG, which never moves, and
+#              synced MANUALLY: nothing changes in staging until
+#                1. a pull request changes targetRevision to a new tag, and
+#                2. a person runs "argocd app sync tasktracker-staging".
+#              A manual kubectl change is detected (OutOfSync) but NOT
+#              reverted, because there is no automated self-heal (Task 8).
+# Promotion:   v1.0.0 (Task 5) -> v1.1.0 (frontend 1.1) -> v1.2.0 (fixed backend)
+# ---------------------------------------------------------------------------
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: tasktracker-staging
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: dso202
+  source:
+    repoURL: https://github.com/Tshewangdorji7257/dso202-gitops.git
+    targetRevision: v1.0.0              # a tag; never main or HEAD
+    path: charts/tasktracker
+    helm:
+      releaseName: tasktracker
+      valueFiles:
+        - ../../environments/staging/values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dso202-staging
+  # No "automated" block: staging is the manual promotion gate.
+  syncPolicy: {}
