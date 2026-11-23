@@ -1,0 +1,35 @@
+# ---------------------------------------------------------------------------
+# File:        platform/dev/quota-and-limits.yaml
+# Assignment:  DSO202 Assignment 4 - GitOps Delivery of the Task Tracker
+# Descriptor:  2.3 (ResourceQuota and LimitRange), reused in 4.2.2
+# Purpose:     The Assignment 2 quota and limits, now delivered from Git.
+#              Because the quota covers requests and limits, every container
+#              (including the smoke-test Job) must declare both.
+#              Sized for dev: 1 replica of each tier, one smoke-test Pod and
+#              room for a rolling update (maxSurge 25 % rounds up to 1 Pod).
+# ---------------------------------------------------------------------------
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: dso202-quota
+  namespace: dso202-dev
+spec:
+  hard:
+    pods: "10"
+    requests.cpu: 1500m
+    requests.memory: 768Mi
+    limits.cpu: "3"
+    limits.memory: 1536Mi
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: dso202-limitrange
+  namespace: dso202-dev
+spec:
+  limits:
+    - type: Container
+      default: {cpu: 500m, memory: 256Mi}          # applied when a limit is missing
+      defaultRequest: {cpu: 250m, memory: 128Mi}   # applied when a request is missing
+      max: {cpu: "1", memory: 512Mi}
+      min: {cpu: 50m, memory: 64Mi}

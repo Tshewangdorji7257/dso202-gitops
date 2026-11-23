@@ -1,0 +1,32 @@
+# ---------------------------------------------------------------------------
+# File:        argocd/applications/platform-staging.yaml
+# Assignment:  DSO202 Assignment 4 - GitOps Delivery of the Task Tracker
+# Descriptor:  4.2.2 (Applications), 3.2 (namespace, quota, RBAC)
+# Purpose:     Staging copy of platform-dev (written by the student from
+#              Listing 10). Only the name, the path and the destination
+#              namespace differ. The platform layer is synced automatically in
+#              both environments: the promotion gate applies to the workloads
+#              (tasktracker-staging), not to the namespace and its limits.
+# ---------------------------------------------------------------------------
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: platform-staging
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: platform
+  source:
+    repoURL: https://github.com/Tshewangdorji7257/dso202-gitops.git
+    targetRevision: main
+    path: platform/staging
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dso202-staging
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
