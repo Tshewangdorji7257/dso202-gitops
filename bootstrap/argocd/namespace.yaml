@@ -1,0 +1,15 @@
+# ---------------------------------------------------------------------------
+# File:        bootstrap/argocd/namespace.yaml
+# Assignment:  DSO202 Assignment 4 - GitOps Delivery of the Task Tracker
+# Descriptor:  4.2.1 (installing Argo CD declaratively)
+# Purpose:     The namespace that holds the seven Argo CD Pods and every
+#              Application and AppProject object. Applied by hand once per
+#              cluster as part of bootstrap (Task 2).
+# ---------------------------------------------------------------------------
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: argocd
+  labels:
+    app.kubernetes.io/part-of: argocd
+    course: dso202

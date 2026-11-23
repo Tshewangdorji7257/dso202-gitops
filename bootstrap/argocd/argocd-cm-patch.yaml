@@ -1,0 +1,39 @@
+# ---------------------------------------------------------------------------
+# File:        bootstrap/argocd/argocd-cm-patch.yaml
+# Assignment:  DSO202 Assignment 4 - GitOps Delivery of the Task Tracker
+# Descriptor:  4.2.1 (Argo CD configuration), 4.3.2 (sync waves)
+# Purpose:     Strategic-merge patch on the upstream argocd-cm ConfigMap.
+#              Only the keys below change; everything else stays upstream.
+# ---------------------------------------------------------------------------
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-cm
+  # No namespace here: the upstream objects have none when the patch is
+  # matched; the kustomization's "namespace: argocd" is applied afterwards.
+data:
+  # The kind cluster cannot receive GitHub webhooks, so Argo CD polls.
+  # 60 s instead of the default 3 min gives faster feedback in the lab.
+  timeout.reconciliation: 60s
+
+  # Restored health check for Application objects. Since Argo CD 1.8 a parent
+  # Application does not look at the health of child Applications. With this
+  # Lua check the root Application waits until each child Application is
+  # Healthy before starting the next sync wave (section 6.2).
+  resource.customizations.health.argoproj.io_Application: |
+    hs = {}
+    hs.status = "Progressing"
+    hs.message = ""
+    if obj.status ~= nil then
+      if obj.status.health ~= nil then
+        hs.status = obj.status.health.status
+        if obj.status.health.message ~= nil then
+          hs.message = obj.status.health.message
+        end
+      end
+    end
+    return hs
+
+  # Local account for Task 6. "login" lets it sign in to the UI and CLI;
+  # it gets no API key. Its permissions come from argocd-rbac-cm.
+  accounts.reviewer: login

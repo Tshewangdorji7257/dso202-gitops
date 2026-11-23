@@ -1,0 +1,30 @@
+# ---------------------------------------------------------------------------
+# File:        bootstrap/argocd/argocd-rbac-cm-patch.yaml
+# Assignment:  DSO202 Assignment 4 - GitOps Delivery of the Task Tracker
+# Descriptor:  4.2.2 (Argo CD projects and access control)
+# Purpose:     Strategic-merge patch on argocd-rbac-cm. Defines a read-only
+#              "reviewer" role limited to the dso202 project.
+#              Policy line format:
+#                p, <role>, <resource>, <action>, <project>/<object>, allow|deny
+#                g, <user or group>, <role>
+# Task 6:      The first version has NO logs rule, so
+#              "argocd account can-i get logs dso202/*" answers "no".
+#              The logs rule is then added in a separate commit (see the
+#              commented line below) and bootstrap/argocd is re-applied.
+# ---------------------------------------------------------------------------
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-rbac-cm
+  # No namespace here: the upstream objects have none when the patch is
+  # matched; the kustomization's "namespace: argocd" is applied afterwards.
+data:
+  # Users with no matching rule get nothing (no implicit read-only access).
+  policy.default: ""
+  policy.csv: |
+    # reviewer may look at the Task Tracker Applications, but not change them
+    p, role:reviewer, applications, get, dso202/*, allow
+    p, role:reviewer, projects, get, dso202, allow
+    # Task 6, second commit: uncomment the next line to allow reading Pod logs
+    # p, role:reviewer, logs, get, dso202/*, allow
+    g, reviewer, role:reviewer
