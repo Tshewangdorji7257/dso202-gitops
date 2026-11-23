@@ -4,11 +4,15 @@
 # Descriptor:  4.4.2 (environment-specific configuration)
 # Purpose:     Everything that differs in dev, and nothing else. Read by
 #              tasktracker-dev from branch main.
+#              BACKEND_URL is the address the BROWSER uses to call the API,
+#              so it must be reachable from the host, not a cluster DNS name:
+#                kubectl port-forward svc/backend-svc -n dso202-dev 8090:8080
 # ---------------------------------------------------------------------------
 environment: dev
 
 config:
   LOG_LEVEL: debug
+  BACKEND_URL: http://localhost:8090
 
 backend:
   replicas: 1
