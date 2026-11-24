@@ -42,7 +42,7 @@ database:
     limits: {cpu: 250m, memory: 256Mi}
 
 backend:
-  image: {repository: rynorbu11/dso202-backend, tag: "1.0", pullPolicy: IfNotPresent}
+  image: {repository: rynorbu11/dso202-backend, tag: "1.1", pullPolicy: IfNotPresent}
   replicas: 1
   port: 8080
   # A Deployment that makes no progress for this long is marked failed,
