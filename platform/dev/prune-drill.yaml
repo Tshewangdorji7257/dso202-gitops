@@ -1,0 +1,14 @@
+# ---------------------------------------------------------------------------
+# File:        platform/dev/prune-drill.yaml
+# Assignment:  DSO202 Assignment 4 - GitOps Delivery of the Task Tracker
+# Descriptor:  4.3.3 (prune)
+# Purpose:     Task 8, Drill 3. Exists only to be removed again: deleting this
+#              file from Git must delete the ConfigMap from the cluster.
+# ---------------------------------------------------------------------------
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prune-drill
+  namespace: dso202-dev
+data:
+  purpose: "delete this file and Argo CD deletes this object"
