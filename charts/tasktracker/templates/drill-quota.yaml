@@ -1,0 +1,15 @@
+# ---------------------------------------------------------------------------
+# File:        charts/tasktracker/templates/drill-quota.yaml
+# Assignment:  DSO202 Assignment 4 - GitOps Delivery of the Task Tracker
+# Descriptor:  4.2.2 (AppProject least privilege)
+# Purpose:     Task 8, Drill 4. A chart commit that tries to raise its own
+#              limits. The dso202 project does not allow ResourceQuota, so
+#              Argo CD must refuse it. Reverted right after the drill.
+# ---------------------------------------------------------------------------
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: drill-quota
+spec:
+  hard:
+    pods: "100"
