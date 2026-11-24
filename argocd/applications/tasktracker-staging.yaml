@@ -32,5 +32,4 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: dso202-staging
-  # No "automated" block: staging is the manual promotion gate.
-  syncPolicy: {}
+   # No syncPolicy at all: no automated sync, so staging is the manual promotion gate.
