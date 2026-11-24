@@ -12,6 +12,7 @@ environment: staging
 
 config:
   LOG_LEVEL: info
+  BACKEND_URL: http://localhost:8091    # browser reaches the staging backend via kubectl port-forward
 
 backend:
   replicas: 2
