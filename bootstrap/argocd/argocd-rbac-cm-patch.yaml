@@ -26,5 +26,5 @@ data:
     p, role:reviewer, applications, get, dso202/*, allow
     p, role:reviewer, projects, get, dso202, allow
     # Task 6, second commit: uncomment the next line to allow reading Pod logs
-    # p, role:reviewer, logs, get, dso202/*, allow
+    p, role:reviewer, logs, get, dso202/*, allow
     g, reviewer, role:reviewer
