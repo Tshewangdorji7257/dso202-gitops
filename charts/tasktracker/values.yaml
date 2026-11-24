@@ -29,6 +29,9 @@ config:
   # Assignment 1, where the frontend was also a NodePort on 30080).
   BACKEND_URL: http://backend-svc:8080
   LOG_LEVEL: info
+  # Required by backend 1.1 at start-up (found in the Pod log, not in the
+  # release note): positive integer, page size of the task list.
+  TASK_PAGE_SIZE: "50"
 
 # Images issued by the module tutor (as used in Assignments 1-3).
 # Exact tags only; never "latest".
@@ -42,7 +45,7 @@ database:
     limits: {cpu: 250m, memory: 256Mi}
 
 backend:
-  image: {repository: rynorbu11/dso202-backend, tag: "1.0", pullPolicy: IfNotPresent}
+  image: {repository: rynorbu11/dso202-backend, tag: "1.1", pullPolicy: IfNotPresent}
   replicas: 1
   port: 8080
   # A Deployment that makes no progress for this long is marked failed,
